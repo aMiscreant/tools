@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ################################################################################
 #                ____                     _ __                                 #
 #     ___  __ __/ / /__ ___ ______ ______(_) /___ __                           #
@@ -17,7 +17,7 @@
 # removing the original iso file from the device and creating a new iso        #
 # with autorun features.                                                       #
 #                                                                              #
-# REQUREMENTS                                                                  #
+# REQUIREMENTS                                                                  #
 # - Metasploit                                                                 #
 # - U3-Tool                                                                    #
 # - Python-2.7                                                                 #
@@ -27,24 +27,20 @@
 #                                                                              #
 ################################################################################
 
-try:
-    import subprocess
-    import time
-    import os
-    import sys
-    import pexpect
-    import banner
-except ImportError:
-    pass
-definepath = os.getcwd()
-sys.path.append('%s/src/' % definepath)
-import banner
+import os
+import sys
+import time
 
-try:
-    while 1 == 1:
-        banner.print_banner()
-        mainmenu = \
-            raw_input('''
+define_path = os.getcwd()
+sys.path.append(f"{define_path}/src")
+
+from src import banner  # Import after path append
+
+def main():
+    try:
+        while True:
+            banner.print_banner()
+            main_menu = input('''
  U3-Pwn Main Menu:
 
  1.  Generate & Replace Iso Image.
@@ -57,91 +53,89 @@ try:
 
  Enter the number: ''').strip()
 
-# Generate Single Iso & Replace Iso on SanDisk Device
-
-        if mainmenu == '1':
-            try:
-                sys.path.append('%s/src/' % definepath)
+            if main_menu == '1':
                 try:
-                    reload(generator)
-                except Exception:
+                    sys.path.append(f"{define_path}/src")
+                    import generator
+                    import importlib
+                    importlib.reload(generator)
+                except KeyboardInterrupt:
+                    print("[-] Returning to previous menu...")
+                    time.sleep(2)
+                except ImportError:
                     pass
-                import generator
-            except KeyboardInterrupt:
-                print '''[-]Returning to previous menu...'''
-                time.sleep(2)
 
-# Generate Single Iso & Replace Iso With Custom Exe on SanDisk Device
-
-        if mainmenu == '2':
-            try:
-                sys.path.append('%s/src/' % definepath)
+            elif main_menu == '2':
                 try:
-                    reload(customexe)
-                except Exception:
+                    sys.path.append(f"{define_path}/src")
+                    import customexe
+                    import importlib
+                    importlib.reload(customexe)
+                except KeyboardInterrupt:
+                    print("[-] Returning to previous menu...")
+                    time.sleep(2)
+                except ImportError:
                     pass
-                import customexe
-            except KeyboardInterrupt:
-                print '''[-]Returning to previous menu...'''
-                time.sleep(2)
 
-# Get SanDisk Device Information
-
-        if mainmenu == '3':
-            try:
-                sys.path.append('%s/src/' % definepath)
+            elif main_menu == '3':
                 try:
-                    reload(deviceinfo)
-                except Exception:
+                    sys.path.append(f"{define_path}/src")
+                    import deviceinfo
+                    import importlib
+                    importlib.reload(deviceinfo)
+                except KeyboardInterrupt:
+                    print("[-] Returning to previous menu...")
+                    time.sleep(2)
+                except ImportError:
                     pass
-                import deviceinfo
-            except KeyboardInterrupt:
-                print '''[-]Returning to previous menu...'''
-                time.sleep(2)
 
- # Replace Backdoored SanDisk Device With Original Iso File
-
-        if mainmenu == '4':
-            try:
-                sys.path.append('%s/src/' % definepath)
+            elif main_menu == '4':
                 try:
-                    reload(backup)
-                except Exception:
+                    sys.path.append(f"{define_path}/src")
+                    import backup
+                    import importlib
+                    importlib.reload(backup)
+                except KeyboardInterrupt:
+                    print("[-] Returning to previous menu...")
+                    time.sleep(2)
+                except ImportError:
                     pass
-                import backup
-            except KeyboardInterrupt:
-                print '''[-]Returning to previous menu...'''
-                time.sleep(2)
 
-# About & Disclaimer
-
-        if mainmenu == '5':
-            try:
-		sys.path.append('%s/src/' % definepath)
+            elif main_menu == '5':
                 try:
-                    reload(compat)
-                except Exception:
+                    sys.path.append(f"{define_path}/src")
                     import compat
-            except KeyboardInterrupt:
-                print '''[-]Returning to previous menu...'''
-                time.sleep(2)
+                    import importlib
+                    importlib.reload(compat)
+                except KeyboardInterrupt:
+                    print("[-] Returning to previous menu...")
+                    time.sleep(2)
+                except ImportError:
+                    pass
 
-	if mainmenu == '6':
-            try:
-		sys.path.append('%s/src/' % definepath)
+            elif main_menu == '6':
                 try:
-                    reload(about)
-                except Exception:
+                    sys.path.append(f"{define_path}/src")
                     import about
-            except KeyboardInterrupt:
-                print '''[-]Returning to previous menu...'''
-                time.sleep(2)
+                    import importlib
+                    importlib.reload(about)
+                except KeyboardInterrupt:
+                    print("[-] Returning to previous menu...")
+                    time.sleep(2)
+                except ImportError:
+                    pass
 
+            elif main_menu == '7':
+                print("[-] Exiting U3-Pwn.")
+                sys.exit()
 
-        if mainmenu == '7':
-            sys.exit()
-except KeyboardInterrupt:
+            else:
+                print("[!] Invalid input. Please select a number from 1 to 7.")
 
- # Error handling
+    except KeyboardInterrupt:
+        print("\n[-] Interrupted by user. Exiting.")
+        print("\n[-]Exiting U3-Pwn...")
+        sys.exit()
 
-    print '''[-]Exiting U3-Pwn...'''
+if __name__ == "__main__":
+    main()

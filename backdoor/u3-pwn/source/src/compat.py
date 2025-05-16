@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ################################################################################
 #                ____                     _ __                                 #
 #     ___  __ __/ / /__ ___ ______ ______(_) /___ __                           #
@@ -17,7 +17,7 @@
 # removing the original iso file from the device and creating a new iso        #
 # with autorun features.                                                       #
 #                                                                              #
-# REQUREMENTS                                                                  #
+# REQUIREMENTS                                                                  #
 # - Metasploit                                                                 #
 # - U3-Tool                                                                    #
 # - Python-2.7                                                                 #
@@ -26,34 +26,37 @@
 # Zy0d0x - http://www.nullsecurity.net/                                        #
 #                                                                              #
 ################################################################################
-try:
-    import os
-    import sys
-    import banner
-except ImportError, error:
-    print'\n[-]Failed To Import Module\n'
-    print error
+import os
+import sys
 
-definepath = os.getcwd()
-sys.path.append('%s/src/' % definepath)
+try:
+    import banner
+except ImportError as error:
+    print('\n[-] Failed to import module\n')
+    print(error)
+    banner = None  # define banner as None to avoid NameError later
+    sys.exit(1)
+
+define_path = os.getcwd()
+sys.path.append(f'{define_path}/src/')
 banner.print_banner()
 
+print(' Compatibility List of SanDisk U3 Devices')
 
-print ' Compatibility List Of SanDisk U3 Devices'
+print('''
 
-print '''
+ VendorID  |  ProductID  |         Device Name
+-----------|-------------|--------------------------------------
+  0x0781   |   0x5406    |   SanDisk Cruzer Micro
+  0x0781   |   0x5408    |   SanDisk Cruzer Titanium
+  0x0781   |   0x550a    |   SanDisk Cruzer Pattern
+  0x0781   |   0x5151    |   SanDisk Cruzer Micro Skin 8GB
+  0x0781   |   0x540e    |   SanDisk Cruzer Contour
+  0x0781   |   0x5530    |   SanDisk Cruzer
+  0x0781   |   0x5535    |   SanDisk Ultra Backup
 
- VendorID  |  ProductID  |  Device Name				
-       	   |		 |					
-  0x0781   |   0x5406    |   Sandisk Cruzer Micro		
-  0x0781   |   0x5408    |   Sandisk Cruzer Titanium		
-  0x0781   |   0x550a    |   Sandisk Cruzer Pattern		
-  0x0781   |   0x5151    |   Sandisk Cruzer Micro Skin 8GB	                 
-  0x0781   |   0x540e    |   Sandisk Cruzer Contour		
-  0x0781   |   0x5530    |   Sandisk Cruzer			
-  0x0781   |   0x5535    |   Sandisk Ultra Backup		
+''')
 
-'''
-raw_input(' Press Enter To Return To Menu..')
+input(' Press Enter to return to menu...')
 
 

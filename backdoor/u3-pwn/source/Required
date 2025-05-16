@@ -16,7 +16,7 @@
 # removing the original iso file from the device and creating a new iso        #
 # with autorun features.                                                       #
 #                                                                              #
-# REQUREMENTS                                                                  #
+# REQUIREMENTS                                                                  #
 # - Metasploit                                                                 #
 # - U3-Tool                                                                    #
 # - Python-2.7                                                                 #
@@ -27,30 +27,7 @@
 ################################################################################
 
 
-Ubuntu: 
+ParrotOS:
 
-apt-get install u3-tool
-
-x32
-wget http://downloads.metasploit.com/data/releases/metasploit-latest-linux-installer.run
-
-chmod 755 metasploit-latest-linux-installer.run
-
-./metasploit-latest-linux-installer.run
-
-ln -s /bin/mkisofs /bin/genisoimage
-
-x64
-wget http://downloads.metasploit.com/data/releases/metasploit-latest-linux-x64-installer.run
-
-chmod 755 metasploit-latest-linux-x64-installer.run
-
-./metasploit-latest-linux-x64-installer.run
-
-ln -s /bin/mkisofs /bin/genisoimage
-
-
-Kali Linux
-
-apt-get update && apt-get -y install genisoimage
+sudo apt-get install -y u3-tool
 
